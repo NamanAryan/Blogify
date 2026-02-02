@@ -36,3 +36,5 @@ app.use("/user", userRoute);
 app.use("/blog", blogRoute);
 
 app.listen(PORT, () => {console.log(`Server start at PORT ${PORT}`)})
+
+module.exports = app;
