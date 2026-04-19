@@ -14,7 +14,7 @@ router.get('/signup', (req,res) => {
 });
 
 router.get('/logout', (req,res) =>{
-    res.clearCookie('token').redirect('/');
+    return res.clearCookie('token').redirect('/');
 
 })
 
@@ -47,15 +47,13 @@ const upload = multer({ storage: storage });
   router.post('/signup', upload.single('profileImage'), async (req, res) => {
     const { fullName, email, password } = req.body;
     
-    if (!req.file) {
-        return res.render('signup', { error: 'Please upload a profile image.' });
-    }
-    console.log(req.file.filename);
+    const profileImageURL = req.file ? `/uploads/${req.file.filename}` : '/images/default_profileImage.png';
+    
     await User.create({
         fullName,
         email,
         password,
-        profileImageURL: `/uploads/${req.file.filename}`
+        profileImageURL
     });
     return res.redirect("/");
 });
