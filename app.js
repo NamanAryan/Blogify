@@ -13,7 +13,14 @@ const blogRoute  =require("./routes/blog");
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-mongoose.connect(process.env.MONGO_URL).then(e => console.log("MongoDB connected!"));
+const mongoUrl = process.env.MONGO_URL || process.env.MONGODB_URI;
+if (mongoUrl) {
+  mongoose.connect(mongoUrl)
+    .then(e => console.log("MongoDB connected!"))
+    .catch(err => console.error("MongoDB connection error:", err));
+} else {
+  console.warn("WARNING: No MongoDB URL provided. Database connections will fail.");
+}
 
 app.set("view engine", "ejs");
 app.set("views", path.resolve("./views"));
