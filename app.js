@@ -2,10 +2,10 @@ require("dotenv").config();
 
 const express = require("express");
 const path = require("path");
-const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const { checkForAuthenticationCookie } = require("./middlewares/authentication");
 const Blog = require("./models/blog");
+const dbConnect = require("./services/dbConnect");
 
 const userRoute =require("./routes/user");
 const blogRoute  =require("./routes/blog");
@@ -13,14 +13,16 @@ const blogRoute  =require("./routes/blog");
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-const mongoUrl = process.env.MONGO_URL || process.env.MONGODB_URI;
-if (mongoUrl) {
-  mongoose.connect(mongoUrl)
-    .then(e => console.log("MongoDB connected!"))
-    .catch(err => console.error("MongoDB connection error:", err));
-} else {
-  console.warn("WARNING: No MongoDB URL provided. Database connections will fail.");
-}
+// Connect to MongoDB before every request (cached for warm serverless invocations)
+app.use(async (req, res, next) => {
+  try {
+    await dbConnect();
+    next();
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+    res.status(503).json({ error: "Database unavailable. Please try again later." });
+  }
+});
 
 app.set("view engine", "ejs");
 app.set("views", path.resolve("./views"));
@@ -42,6 +44,8 @@ app.get('/', async (req,res) => {
 app.use("/user", userRoute);
 app.use("/blog", blogRoute);
 
-app.listen(PORT, () => {console.log(`Server start at PORT ${PORT}`)})
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {console.log(`Server start at PORT ${PORT}`)})
+}
 
 module.exports = app;
