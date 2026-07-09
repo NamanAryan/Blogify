@@ -19,8 +19,11 @@ app.use(async (req, res, next) => {
     await dbConnect();
     next();
   } catch (err) {
-    console.error("MongoDB connection error:", err);
-    res.status(503).json({ error: "Database unavailable. Please try again later." });
+    console.error("MongoDB connection failed:", err.message, err.name);
+    res.status(503).json({
+      error: "Database unavailable. Please try again later.",
+      reason: err.message,  // visible in Vercel response for debugging
+    });
   }
 });
 
